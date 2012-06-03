@@ -35,8 +35,8 @@ ARDUINO = /usr/share/arduino/hardware/arduino/cores/arduino
 # Setting up the libs, explicitly using the locally stored copy of the Ethernet library so we can make changes
 LIBS = WString.cpp Print.cpp LiquidCrystal.cpp HardwareSerial.cpp Wire.cpp new.cpp main.cpp \
 File.cpp SD.cpp SdFile.cpp SdVolume.cpp Sd2Card.cpp \
-WMath.cpp SPI.cpp \
-./Ethernet/Ethernet.cpp ./Ethernet/EthernetUdp.cpp ./Ethernet/Dhcp.cpp ./Ethernet/IPAddress.cpp ./Ethernet/Dns.cpp ./Ethernet/EthernetClient.cpp \
+IPAddress.cpp WMath.cpp SPI.cpp \
+./Ethernet/Ethernet.cpp ./Ethernet/EthernetUdp.cpp ./Ethernet/Dhcp.cpp ./Ethernet/Dns.cpp ./Ethernet/EthernetClient.cpp \
 ./Ethernet/utility/w5100.cpp ./Ethernet/utility/socket.cpp
 
 #vpath %.cpp $(subst ${ },:,$(wildcard $(ARDUINO)/*/))
@@ -77,8 +77,8 @@ CXXINCS = -I$(ARDUINO) \
  -I/usr/share/arduino/libraries/SD/utility \
  -I/usr/share/arduino/libraries/Sha \
  -I/usr/share/arduino/libraries/RTClib \
- -I/usr/share/arduino/libraries/Ethernet \
- -I/usr/share/arduino/libraries/Ethernet/utility
+ -I./Ethernet \
+ -I./Ethernet/utility
 
 # Compiler flag to set the C Standard level.
 # c89   - "ANSI" C
