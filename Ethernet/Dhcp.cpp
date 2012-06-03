@@ -9,6 +9,8 @@
 #include "Arduino.h"
 #include "util.h"
 
+#include <avr/wdt.h>
+
 int DhcpClass::beginWithDHCP(uint8_t *mac, unsigned long timeout, unsigned long responseTimeout)
 {
     _dhcpLeaseTime=0;
@@ -118,6 +120,9 @@ int DhcpClass::request_DHCP_lease(){
         
         if(result != 1 && ((millis() - startTime) > _timeout))
             break;
+
+        // Pat the watchdog
+        wdt_reset();
     }
     
     // We're done with the socket now
