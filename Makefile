@@ -31,7 +31,10 @@ TARGET = OpenDoorControl
 #ARDUINO = /usr/share/arduino/hardware/arduino/variants/mega
 #PATH=${PATH}:/Applications/Arduino.app/Contents/Resources/Java/hardware/tools/avr/bin
 ARDUINO = /usr/share/arduino/hardware/arduino/cores/arduino
-LIBS = WString.cpp Print.cpp LiquidCrystal.cpp File.cpp HardwareSerial.cpp SD.cpp SdFile.cpp SdVolume.cpp Sd2Card.cpp Wire.cpp new.cpp main.cpp
+LIBS = WString.cpp Print.cpp LiquidCrystal.cpp HardwareSerial.cpp Wire.cpp new.cpp main.cpp \
+File.cpp SD.cpp SdFile.cpp SdVolume.cpp Sd2Card.cpp \
+Ethernet.cpp EthernetUdp.cpp w5100.cpp Dhcp.cpp IPAddress.cpp Dns.cpp EthernetClient.cpp socket.cpp WMath.cpp SPI.cpp
+
 #vpath %.cpp $(subst ${ },:,$(wildcard $(ARDUINO)/*/))
 vpath %.c /usr/share/arduino/hardware/arduino/cores/arduino
 vpath %.c $(subst ${ },:,$(wildcard /usr/share/arduino/libraries/*/))
@@ -70,7 +73,8 @@ CXXINCS = -I$(ARDUINO) \
  -I/usr/share/arduino/libraries/SD/utility \
  -I/usr/share/arduino/libraries/Sha \
  -I/usr/share/arduino/libraries/RTClib \
- -I/usr/share/arduino/libraries/Ethernet
+ -I/usr/share/arduino/libraries/Ethernet \
+ -I/usr/share/arduino/libraries/Ethernet/utility
 
 # Compiler flag to set the C Standard level.
 # c89   - "ANSI" C
