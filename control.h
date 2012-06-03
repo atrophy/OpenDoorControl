@@ -42,6 +42,11 @@ void closeSpaceFinal();
 void ledBlink();
 void ledFade();
 void clearFade();
+void DHCPRefresh();
+void UpdateAuthLists();
+void UpdatePoller();
+void ReceiveUpdateRequest();
+
 //void induceDeath();
 
 #endif /* CONTROL_H */

@@ -44,7 +44,7 @@ lessons learned:
 #include <SPI.h>
 #include <SD.h>
 //#include "Sha/sha1.h"
-//#include <Ethernet.h>
+#include "Ethernet/Ethernet.h"
 #include <Wire.h>
 #include "aux.h"
 #include "SDfiles.h"
@@ -67,32 +67,44 @@ bool spaceGrace = false;        // Space is in post-lockup grace period
 timer fastTimers[NUMFASTTIMERS];
 timer slowTimers[NUMSLOWTIMERS];
 
-
 //the time for logging purposes *******************************
 unsigned long theTime = 0;	//seconds since boot (or 1900 epoch after NTP)
-//the time for (sub-hour) timing purposes
-//unsigned long microsHolder = 0;  //the current window
-//unsigned long oldMicros = 0;  //the last time we checked
 
+// ---------------------------------------------------
+// Network Variables
+// ---------------------------------------------------
+byte mac[] = {0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED};  // MAC address for the controller
+byte server[] = { 192, 168, 16, 1 };                // IP of the server running the auth updater
+EthernetClient client;
 
-//SD card files *************************************
-File openFile; //the open file (the SD lib can't hold two files open?!)
-char fullFile[13]  = "fullHash.txt";
-char assocFile[13] = "asocHash.txt";
-char restFile[13]  = "restHash.txt";
-const char* logFilePrefix = "log";  //file writes are append operations on existing files.
-const char* logFileSuffix = ".txt";
-char logFile[13];  //the name we actually use
+// ---------------------------------------------------
+// SD Card & File Settings
+// ---------------------------------------------------
+File openFile;                        // The open file (the SD lib can't hold two files open?!)
+char fullFile[13]  = "fullHash.txt";  // The full members file
+char assocFile[13] = "asocHash.txt";  // The associate members file
+char restFile[13]  = "restHash.txt";  // The restricted members file
+const char* logFilePrefix = "log";    // Prefix for the log files
+const char* logFileSuffix = ".txt";   // Suffix for the log files
+char logFile[13];                     // Log file currently in use
 
-bool blinkStatus = false;
-int blinkPin = 0;
+char tempFile[13] = "tempHash.txt";
 
-float fadeTime = 2000.0;
+char authFiles[AUTHFILECOUNT][13] = { "fullHash.txt", "asocHash.txt", "restHash.txt" };
+int authFileCurrent = 0;
+int authRetrieveAttempts = 0;
 
-int fadePins[LEDFADERCOUNT] = {};
+// ---------------------------------------------------
+// Blinkenlights Settings
+// ---------------------------------------------------
+bool blinkStatus = false;         // Is the blinker currently blinking
+int blinkPin = 0;                 // What pin should the blinker blink
+float fadeTime = 2000.0;          // How long should the fader fade for
+int fadePins[LEDFADERCOUNT] = {}; // Pins to fade
+
 
 void setup() {
-  //wdt_disable();
+  // Pat the watchdog
   wdt_reset();
 
   // Set the watchdog timer to 8 seconds
@@ -142,27 +154,22 @@ void setup() {
   lcd.setCursor(0, 0);
   lcd.print("Artifactory Door");
   lcd.setCursor(0, 1);
-  lcd.print("  Booting");
+  lcd.print("DHCP Started");
 
-/*    
-  if (Ethernet.begin(mac) == 0) {
-    Serial.println("DHCP failed.");
-    // initialize the ethernet device not using DHCP:
-    Ethernet.begin(mac, ip, gateway, subnet);
+  if (Ethernet.begin(mac, 10000) == 0) {
+    fileWrite(logFile, "DHCP failed.", "", true);
   }
-  Serial.print("IP = ");
-  for (byte thisByte = 0; thisByte < 4; thisByte++) {
-    Serial.print(Ethernet.localIP()[thisByte], DEC);
-    Serial.print(".");
-  }
-  Serial.println();
+  else {
+    byte localAddress[4];
+    localAddress[0] = Ethernet.localIP()[0];
+    localAddress[1] = Ethernet.localIP()[1];
+    localAddress[2] = Ethernet.localIP()[2];
+    localAddress[3] = Ethernet.localIP()[3];
 
-  if(serverWrite("booting", "", false) == true) {
-    Serial.println("telnet sending");
-  } else {
-    Serial.println("telnet send failed");
+    char addressPrintable[15] = { localAddress[0], localAddress[1], localAddress[2], localAddress[3] };
+
+    fileWrite(logFile, "Network connected with address: ", addressPrintable, true);
   }
-*/
   
   //fast timers are measured against micros()
   fastTimers[TIMERSECOND].period = 1 S;
@@ -187,19 +194,15 @@ void setup() {
   fastTimers[TIMERLEDFADER].active = false;
   fastTimers[TIMERLEDFADER].expire = ledFade;
 
-/*
-  fastTimers[TIMERSERVER].period = 10 S;
-  fastTimers[TIMERSERVER].active = false;
-  fastTimers[TIMERSERVER].expire = serverTimeout;
-*/
-  //slow timers are measured against theTime
-  slowTimers[TIMERLOGDUMP].period = 86400;  // seconds
+
+  // Slow timers are measured against theTime, their period is in seconds
+
+  slowTimers[TIMERLOGDUMP].period = 86400;  // 24 hours
   slowTimers[TIMERLOGDUMP].start = theTime;
   slowTimers[TIMERLOGDUMP].active = true;
   slowTimers[TIMERLOGDUMP].expire = dumpLogs;
 
-  slowTimers[TIMERRTCREFRESH].period = 86400;  // ten hours
-  //slowTimers[TIMERRTCREFRESH].period = 15;  // ten hours
+  slowTimers[TIMERRTCREFRESH].period = 86400;  // 24 hours
   slowTimers[TIMERRTCREFRESH].start = theTime;
   slowTimers[TIMERRTCREFRESH].active = true;
   slowTimers[TIMERRTCREFRESH].expire = fetchTime;
@@ -220,6 +223,22 @@ void setup() {
   slowTimers[TIMEREXITGRACE].period = 60; // Give a 1 minute grace period post lockup
   slowTimers[TIMEREXITGRACE].active = false;
   slowTimers[TIMEREXITGRACE].expire = closeSpaceFinal;
+
+  slowTimers[TIMERDHCPREFRESH].period = 900; // DHCP refresh every 15 mins
+  slowTimers[TIMERDHCPREFRESH].active = true;
+  slowTimers[TIMERDHCPREFRESH].expire = DHCPRefresh;
+
+  slowTimers[TIMERUPDATELISTS].period = 43200; // 12 hours
+  slowTimers[TIMERUPDATELISTS].active = true;
+  slowTimers[TIMERUPDATELISTS].expire = UpdateAuthLists;
+
+  slowTimers[TIMERUPDATEPOLLER].period = 5; // seconds
+  slowTimers[TIMERUPDATEPOLLER].active = false;
+  slowTimers[TIMERUPDATEPOLLER].expire = UpdatePoller;
+
+  slowTimers[TIMERUPDATERECEIVE].period = 5; // seconds
+  slowTimers[TIMERUPDATERECEIVE].active = false;
+  slowTimers[TIMERUPDATERECEIVE].expire = ReceiveUpdateRequest;
 
   //slowTimers[TIMERINDUCEDEATH].period = 10;
   //slowTimers[TIMERINDUCEDEATH].active = true;

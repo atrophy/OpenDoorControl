@@ -26,6 +26,7 @@
 #include "SDfiles.h"
 #include "control.h"
 #include "aux.h"
+#include "Ethernet/Ethernet.h"
 
 void pollTimers() {  //see setup for the default values
 //  oldMicros = microsHolder;
@@ -218,5 +219,92 @@ void clearFade() {
   while (f < LEDFADERCOUNT) {
     fadePins[f] = 0;
     f++;
+  }
+}
+
+// Here be dragons (and networking code)
+
+// DH:  My current rule of thumb is to turn the external status LED yellow to indicate
+//      network activity, should help prevent confusion if the door won't scan for a 
+//      second or two during a network operation (and confuse the hell out of the neighbours).
+
+// This runs regularly to make sure the DHCP lease is up to date (should probably run every 15 mins or so)
+void DHCPRefresh() {
+  int ethStatus = 0;
+
+  // Turn the status LED yellow whilst we're renewing the lease, should help with debugging...
+  digitalWrite(STATUS_R, HIGH);
+  digitalWrite(STATUS_G, HIGH);
+
+  // Try to renew the lease
+  ethStatus = Ethernet.maintain();
+
+  // Now that the refresh has (hopefully) succeeded turn the LED's off.
+  digitalWrite(STATUS_R, LOW);
+  digitalWrite(STATUS_G, LOW);
+
+  if (ethStatus == 1) // Oh shiiiii........
+  {
+    fileWrite(logFile, "Failed to renew DHCP lease.", "", true);
+  }
+}
+
+void UpdateAuthLists() {
+  authFileCurrent = 0;
+  slowTimers[TIMERUPDATEPOLLER].active = true;
+}
+
+// Ticks through the files that need updating
+// Called by the TIMERUPDATEPOLLER timer.
+void UpdatePoller() {
+  if ( authFileCurrent < AUTHFILECOUNT )
+  {
+    if (client.connect(server, 80)) {
+      client.print("GET /");
+      client.println(authFiles[authFileCurrent]);
+      client.println();
+      authRetrieveAttempts = 0;
+      slowTimers[TIMERUPDATERECEIVE].active = true;
+    }
+    else {
+      fileWrite(logFile, "Update server connection failure", "", true);
+    }
+    authFileCurrent++; 
+  }
+  slowTimers[TIMERUPDATEPOLLER].active = false;
+}
+
+// Receives data waiting on the HTTP client
+// This is called by the TIMERUPDATERECEIVE timer
+void ReceiveUpdateRequest()
+{
+  char line[HASHLENGTH] = {0};
+  int lPos = 0;
+  if (authRetrieveAttempts < 10){
+    if (client.connected()){
+      slowTimers[TIMERUPDATERECEIVE].active = false;
+      while (client.available()) {
+        char c = client.read();
+        if (c == '\n') {
+          fileWrite(tempFile, line, "", false);
+          lPos = 0;
+        }
+        else {
+          line[lPos] = c;
+          lPos++;
+        }
+      }
+      client.stop();
+      slowTimers[TIMERUPDATEPOLLER].active = true;
+
+      // At this juncture we should have a new file in tempFile that should be verified somehow...
+
+      
+    }
+  }
+  else {
+    slowTimers[TIMERUPDATERECEIVE].active = false;
+    client.stop();
+    fileWrite(logFile, "Update receive timout", "", true);
   }
 }

@@ -26,6 +26,7 @@
 #include "RTClib/RTClib.h"
 #include <SD.h>
 #include "general.h"
+#include "Ethernet/Ethernet.h"
 
 //Handy SI units  ***********************************
 #define MS *(unsigned long)1000
@@ -71,6 +72,8 @@ extern RTC_DS1307 RTC;
 #define HASHLENGTH 10		//  5 bytes, 10 hex chars (crypto-hashing disable)
 #define RFIDLENGTH 10		//  5 bytes, 10 hex chars
 #define RFIDSTRINGLENGTH 12	// 10 uid chars, 2 checksum
+#define AUTHFILECOUNT 3
+
 
 //for server and SD strings **************************
 #define BUFSIZ 60			// the largest string we have to handle should be 41 bytes 
@@ -104,16 +107,24 @@ extern bool doorStatusRepeat;
 
 
 //#define TIMERSERVER 3
-#define NUMSLOWTIMERS 6
+#define NUMSLOWTIMERS 11
 #define TIMERLOGDUMP 0
 #define TIMERRTCREFRESH 1
 #define TIMERLCDTIME 2
 #define TIMERDOORBELL 3
 #define TIMERDOORSTATUS 4
 #define TIMEREXITGRACE 5
+
+#define TIMERDHCPREFRESH 6
+#define TIMERUPDATELISTS 7
+#define TIMERUPDATEPOLLER 8
+#define TIMERUPDATERECEIVE 9
+
+#define LEDFADERCOUNT 10
+
 //#define TIMERINDUCEDEATH 6
 
-#define LEDFADERCOUNT 6
+
 
 extern timer fastTimers[NUMFASTTIMERS];
 extern timer slowTimers[NUMSLOWTIMERS];
@@ -136,15 +147,24 @@ extern char restFile[13];
 extern const char* logFilePrefix;
 extern const char* logFileSuffix;
 extern char logFile[13];
+
+extern char tempFile[13];
+
 //char* tempFile = "tempFile.txt";  //why am I not allowed to re-name files?
 #define LOGDIGITS 4  //integer makes 4hex digits
 //archived logs will have LOGDIGITS hex digits following them
 
+extern char authFiles[AUTHFILECOUNT][13];
+extern int authFileCurrent;
+extern int authRetrieveAttempts;
 extern bool blinkStatus;
 extern int blinkPin;
 
 extern int fadePins[LEDFADERCOUNT];
 extern float fadeTime;
+
+extern byte server[4];
+extern EthernetClient client;
 
 /*
 byte mac[] = {0x31, 0x41, 0x15, 0x92, 0x65, 0x38};  //the mac of the door
