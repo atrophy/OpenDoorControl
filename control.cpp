@@ -231,6 +231,7 @@ void clearFade() {
 // This runs regularly to make sure the DHCP lease is up to date (should probably run every 15 mins or so)
 void DHCPRefresh() {
   int ethStatus = 0;
+  Serial.println("Running ethernet maintainer...");
 
   // Turn the status LED yellow whilst we're renewing the lease, should help with debugging...
   digitalWrite(STATUS_R, HIGH);
@@ -243,10 +244,28 @@ void DHCPRefresh() {
   digitalWrite(STATUS_R, LOW);
   digitalWrite(STATUS_G, LOW);
 
+  Serial.println("Finished Running ethernet maintainer.");
+
+
   if (ethStatus == 1) // Oh shiiiii........
   {
     fileWrite(logFile, "Failed to renew DHCP lease.", "", true);
   }
+
+//  if (ethStatus == 2)
+//  {
+    byte localAddress[4];
+    localAddress[0] = Ethernet.localIP()[0];
+    localAddress[1] = Ethernet.localIP()[1];
+    localAddress[2] = Ethernet.localIP()[2];
+    localAddress[3] = Ethernet.localIP()[3];
+
+    char addressPrintable[15] = { localAddress[0], localAddress[1], localAddress[2], localAddress[3] };
+    Serial.print("Network connected with address: ");
+    Serial.println(addressPrintable);
+    
+//    fileWrite(logFile, "Network connected with address: ", addressPrintable, true);
+//  }
 }
 
 void UpdateAuthLists() {

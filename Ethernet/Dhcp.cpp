@@ -11,6 +11,8 @@
 
 #include <avr/wdt.h>
 
+#define DEBUG
+
 int DhcpClass::beginWithDHCP(uint8_t *mac, unsigned long timeout, unsigned long responseTimeout)
 {
     _dhcpLeaseTime=0;
@@ -18,7 +20,7 @@ int DhcpClass::beginWithDHCP(uint8_t *mac, unsigned long timeout, unsigned long 
     _dhcpT2=0;
     _lastCheck=0;
     _timeout = timeout;
-    _responseTimeout = responseTimeout;
+    _responseTimeout = 3000;
 
     // zero out _dhcpMacAddr
     memset(_dhcpMacAddr, 0, 6); 
@@ -39,8 +41,11 @@ int DhcpClass::request_DHCP_lease(){
     
     uint8_t messageType = 0;
   
-    
-  
+    #ifdef DEBUG
+        Serial.print("Requesting lease with timeout of: ");
+        Serial.println(_timeout);
+    #endif
+
     // Pick an initial transaction ID
     _dhcpTransactionId = random(1UL, 2000UL);
     _dhcpInitialTransactionId = _dhcpTransactionId;
@@ -73,8 +78,18 @@ int DhcpClass::request_DHCP_lease(){
         }
         else if(_dhcp_state == STATE_DHCP_DISCOVER)
         {
+            #ifdef DEBUG
+                Serial.println("Attempting to get a response...");
+            #endif
+
             uint32_t respId;
             messageType = parseDHCPResponse(_responseTimeout, respId);
+
+            #ifdef DEBUG
+                Serial.print("Reponse type: ");
+                Serial.println(messageType);
+            #endif
+
             if(messageType == DHCP_OFFER)
             {
                 // We'll use the transaction ID that the offer came with,
@@ -119,7 +134,13 @@ int DhcpClass::request_DHCP_lease(){
         }
         
         if(result != 1 && ((millis() - startTime) > _timeout))
+        {
+            #ifdef DEBUG
+                Serial.println("Timout expired.");
+            #endif
+
             break;
+        }
 
         // Pat the watchdog
         wdt_reset();
@@ -261,6 +282,10 @@ uint8_t DhcpClass::parseDHCPResponse(unsigned long responseTimeout, uint32_t& tr
      
     unsigned long startTime = millis();
 
+    #ifdef DEBUG
+        Serial.print("Waiting for response");
+    #endif
+
     while(_dhcpUdpSocket.parsePacket() <= 0)
     {
         if((millis() - startTime) > responseTimeout)
@@ -268,7 +293,18 @@ uint8_t DhcpClass::parseDHCPResponse(unsigned long responseTimeout, uint32_t& tr
             return 255;
         }
         delay(50);
+
+        #ifdef DEBUG
+            Serial.print(".");
+        #endif
+
+        wdt_reset();
     }
+    
+    #ifdef DEBUG
+        Serial.println();
+    #endif
+
     // start reading in the packet
     RIP_MSG_FIXED fixedMsg;
     _dhcpUdpSocket.read((uint8_t*)&fixedMsg, sizeof(RIP_MSG_FIXED));
@@ -424,7 +460,12 @@ int DhcpClass::checkLease(){
             else
                 _rebindInSec -= factor;
         }
-
+        #ifdef DEBUG
+            Serial.print("DHCP State: ");
+            Serial.println(_dhcp_state);
+            Serial.print("Rebind: ");
+            Serial.println(_rebindInSec);
+        #endif
         //if we have a lease but should renew, do it
         if (_dhcp_state == STATE_DHCP_LEASED && _renewInSec <=0){
             _dhcp_state = STATE_DHCP_REREQUEST;
@@ -432,9 +473,15 @@ int DhcpClass::checkLease(){
         }
 
         //if we have a lease or is renewing but should bind, do it
-        if( (_dhcp_state == STATE_DHCP_LEASED || _dhcp_state == STATE_DHCP_START) && _rebindInSec <=0){
+        //if( (_dhcp_state == STATE_DHCP_LEASED || _dhcp_state == STATE_DHCP_START) && _rebindInSec <=0){
+        if( (_dhcp_state == STATE_DHCP_LEASED && _rebindInSec <=0) || _dhcp_state == STATE_DHCP_START ){
             //this should basically restart completely
             _dhcp_state = STATE_DHCP_START;
+
+            #ifdef DEBUG
+                Serial.println("Attempting new lease...");
+            #endif
+
             reset_DHCP_lease();
             rc = 3 + request_DHCP_lease();
         }

@@ -156,7 +156,7 @@ void setup() {
   lcd.setCursor(0, 1);
   lcd.print("DHCP Started");
 
-  if (Ethernet.begin(mac, 10000) == 0) {
+  if (Ethernet.begin(mac, 60000) == 0) {
     fileWrite(logFile, "DHCP failed.", "", true);
   }
   else {
@@ -224,7 +224,7 @@ void setup() {
   slowTimers[TIMEREXITGRACE].active = false;
   slowTimers[TIMEREXITGRACE].expire = closeSpaceFinal;
 
-  slowTimers[TIMERDHCPREFRESH].period = 900; // DHCP refresh every 15 mins
+  slowTimers[TIMERDHCPREFRESH].period = 10; // DHCP refresh every 15 mins
   slowTimers[TIMERDHCPREFRESH].active = true;
   slowTimers[TIMERDHCPREFRESH].expire = DHCPRefresh;
 
