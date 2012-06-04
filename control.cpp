@@ -222,6 +222,7 @@ void clearFade() {
   }
 }
 
+
 // Here be dragons (and networking code)
 
 // DH:  My current rule of thumb is to turn the external status LED yellow to indicate
@@ -231,8 +232,9 @@ void clearFade() {
 // This runs regularly to make sure the DHCP lease is up to date (should probably run every 15 mins or so)
 void DHCPRefresh() {
   int ethStatus = 0;
-  Serial.println("Running ethernet maintainer...");
-
+  #ifdef DEBUG
+    Serial.println("Running ethernet maintainer...");
+  #endif
   // Turn the status LED yellow whilst we're renewing the lease, should help with debugging...
   digitalWrite(STATUS_R, HIGH);
   digitalWrite(STATUS_G, HIGH);
@@ -243,9 +245,9 @@ void DHCPRefresh() {
   // Now that the refresh has (hopefully) succeeded turn the LED's off.
   digitalWrite(STATUS_R, LOW);
   digitalWrite(STATUS_G, LOW);
-
-  Serial.println("Finished Running ethernet maintainer.");
-
+  #ifdef DEBUG
+    Serial.println("Finished Running ethernet maintainer.");
+  #endif
 
   if (ethStatus == 1) // Oh shiiiii........
   {
@@ -261,8 +263,10 @@ void DHCPRefresh() {
     localAddress[3] = Ethernet.localIP()[3];
 
     char addressPrintable[15] = { localAddress[0], localAddress[1], localAddress[2], localAddress[3] };
-    Serial.print("Network connected with address: ");
-    Serial.println(addressPrintable);
+    #ifdef DEBUG
+      Serial.print("Network connected with address: ");
+      Serial.println(addressPrintable);
+    #endif
     
 //    fileWrite(logFile, "Network connected with address: ", addressPrintable, true);
 //  }
