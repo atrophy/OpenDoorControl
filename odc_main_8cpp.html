@@ -3,7 +3,7 @@
 <head>
 <meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
-<title>OpenDoorControl: timers.cpp File Reference</title>
+<title>OpenDoorControl: odcMain.cpp File Reference</title>
 
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <link href="doxygen.css" rel="stylesheet" type="text/css" />
@@ -89,7 +89,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
   </div>
 </div>
 <script type="text/javascript">
-  initNavTree('timers_8cpp.html','');
+  initNavTree('odc_main_8cpp.html','');
 </script>
 <div id="doc-content">
 <!-- window showing the filter options -->
@@ -110,19 +110,27 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
   <div class="summary">
 <a href="#func-members">Functions</a>  </div>
   <div class="headertitle">
-<div class="title">timers.cpp File Reference</div>  </div>
+<div class="title">odcMain.cpp File Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
 
-<p>Timer control and polling functions.  
+<p>Main program, contains the main loop and setup.  
 <a href="#details">More...</a></p>
-<table class="memberdecls">
+<div class="textblock"><code>#include &lt;avr/wdt.h&gt;</code><br/>
+<code>#include &quot;<a class="el" href="odc_main_8h_source.html">odcMain.h</a>&quot;</code><br/>
+<code>#include &quot;<a class="el" href="state_loops_8h_source.html">stateLoops.h</a>&quot;</code><br/>
+</div><table class="memberdecls">
 <tr><td colspan="2"><h2><a name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:a122ea55bc1a21d44231494033d708c7c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="timers_8cpp.html#a122ea55bc1a21d44231494033d708c7c">serviceTimers</a> ()</td></tr>
+<tr class="memitem:a6923c335adc499a6588a76197df56127"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a6923c335adc499a6588a76197df56127"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>fsmrans</b> (<a class="el" href="odc_main_8h.html#ab81ca9153c95d55639b4ab520bb2aa4d">INPUT</a> input)</td></tr>
+<tr class="memitem:a96ac257e847c292b93fa407ecaad2ae8"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="odc_main_8cpp.html#a96ac257e847c292b93fa407ecaad2ae8">noEvent</a> ()</td></tr>
+<tr class="memitem:adb4fc1a60fd27f7a0169729da7fee807"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="odc_main_8cpp.html#adb4fc1a60fd27f7a0169729da7fee807">someEvent</a> ()</td></tr>
+<tr class="memitem:ae66f6b31b5ad750f1fe042a706a4e3d4"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ae66f6b31b5ad750f1fe042a706a4e3d4"></a>
+int&#160;</td><td class="memItemRight" valign="bottom"><b>main</b> ()</td></tr>
 </table>
 <hr/><a name="details" id="details"></a><h2>Detailed Description</h2>
-<div class="textblock"><p>Timer control and polling functions. </p>
+<div class="textblock"><p>Main program, contains the main loop and setup. </p>
 <dl class="section author"><dt>Author:</dt><dd>Daniel Harmsworth <a href="#" onclick="location.href='mai'+'lto:'+'atr'+'op'+'hy@'+'ar'+'tif'+'ac'+'tor'+'y.'+'org'+'.a'+'u'; return false;">atrop<span style="display: none;">.nosp@m.</span>hy@a<span style="display: none;">.nosp@m.</span>rtifa<span style="display: none;">.nosp@m.</span>ctor<span style="display: none;">.nosp@m.</span>y.org<span style="display: none;">.nosp@m.</span>.au</a> </dd>
 <dd>
 Brett Downing <a href="#" onclick="location.href='mai'+'lto:'+'bre'+'tt'+'@ar'+'ti'+'fac'+'to'+'ry.'+'or'+'g.a'+'u'; return false;">brett<span style="display: none;">.nosp@m.</span>@art<span style="display: none;">.nosp@m.</span>ifact<span style="display: none;">.nosp@m.</span>ory.<span style="display: none;">.nosp@m.</span>org.a<span style="display: none;">.nosp@m.</span>u</a> </dd></dl>
@@ -135,14 +143,14 @@ LICENSE</h2>
 <p>You should have received a copy of the GNU General Public License along with OpenDoorControl. If not, see <a href="http://www.gnu.org/licenses/">http://www.gnu.org/licenses/</a>.</p>
 <h2><a class="anchor" id="DESCRIPTION"></a>
 DESCRIPTION</h2>
-<p>The timers are the core of OpenDoorControl, in order to remove blocking code and allow for asynchronous operation most of the functionality is tied to one or more timers. </p>
+<p>This is where our main loop lives and we do all of the initial setup. </p>
 </div><hr/><h2>Function Documentation</h2>
-<a class="anchor" id="a122ea55bc1a21d44231494033d708c7c"></a>
+<a class="anchor" id="a96ac257e847c292b93fa407ecaad2ae8"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void <a class="el" href="timers_8cpp.html#a122ea55bc1a21d44231494033d708c7c">serviceTimers</a> </td>
+          <td class="memname">void <a class="el" href="odc_main_8h.html#a96ac257e847c292b93fa407ecaad2ae8">noEvent</a> </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td></td>
@@ -150,8 +158,24 @@ DESCRIPTION</h2>
       </table>
 </div>
 <div class="memdoc">
-<p>Poll the timers and update or refresh as needed</p>
-<p>Checks the declared timers for expiries and runs their required expire function. Dependant on the repeat flag may either stop or reset the timer. </p>
+<p>An explicit do-nothing function </p>
+
+</div>
+</div>
+<a class="anchor" id="adb4fc1a60fd27f7a0169729da7fee807"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void <a class="el" href="odc_main_8h.html#adb4fc1a60fd27f7a0169729da7fee807">someEvent</a> </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+<p>Placeholder function </p>
 
 </div>
 </div>
@@ -159,7 +183,7 @@ DESCRIPTION</h2>
 </div>
   <div id="nav-path" class="navpath">
     <ul>
-      <li class="navelem"><a class="el" href="timers_8cpp.html">timers.cpp</a>      </li>
+      <li class="navelem"><a class="el" href="odc_main_8cpp.html">odcMain.cpp</a>      </li>
 
     <li class="footer">Generated on Tue Jun 12 2012 07:26:35 for OpenDoorControl by
     <a href="http://www.doxygen.org/index.html">
