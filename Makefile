@@ -30,26 +30,12 @@ UPLOAD_RATE = 115200
 TARGET = OpenDoorControl
 #ARDUINO = /usr/share/arduino/hardware/arduino/variants/mega
 #PATH=${PATH}:/Applications/Arduino.app/Contents/Resources/Java/hardware/tools/avr/bin
-ARDUINO = /usr/share/arduino/hardware/arduino/cores/arduino
 
 # Setting up the libs, explicitly using the locally stored copy of the Ethernet library so we can make changes
-LIBS = WString.cpp Print.cpp LiquidCrystal.cpp HardwareSerial.cpp Wire.cpp new.cpp main.cpp \
-File.cpp SD.cpp SdFile.cpp SdVolume.cpp Sd2Card.cpp \
-IPAddress.cpp WMath.cpp SPI.cpp \
-./Ethernet/Ethernet.cpp ./Ethernet/EthernetUdp.cpp ./Ethernet/Dhcp.cpp ./Ethernet/Dns.cpp ./Ethernet/EthernetClient.cpp \
-./Ethernet/utility/w5100.cpp ./Ethernet/utility/socket.cpp
+LIBS = 
 
-#vpath %.cpp $(subst ${ },:,$(wildcard $(ARDUINO)/*/))
-vpath %.c /usr/share/arduino/hardware/arduino/cores/arduino
-vpath %.c $(subst ${ },:,$(wildcard /usr/share/arduino/libraries/*/))
-vpath %.c $(subst ${ },:,$(wildcard /usr/share/arduino/libraries/*/utility))
-vpath %.cpp /usr/share/arduino/hardware/arduino/cores/arduino
-vpath %.cpp $(subst ${ },:,$(wildcard /usr/share/arduino/libraries/*/))
-vpath %.cpp $(subst ${ },:,$(wildcard /usr/share/arduino/libraries/*/utility))
-SRC = wiring.c wiring_digital.c wiring_analog.c twi.c
-CXXSRC = $(TARGET).cpp $(LIBS) aux.cpp control.cpp general.cpp interrupts.cpp RFID.cpp SDfiles.cpp RTClib/RTClib.cpp
+CXXSRC = $(TARGET).cpp $(LIBS)
 #CXXSRC = $(wildcard *.cpp) $(LIBS)
-
 
 # Debugging format.
 # Native formats for AVR-GCC's -g are stabs [default], or dwarf-2.
@@ -62,29 +48,12 @@ OPT = s
 CDEFS = -DF_CPU=$(F_CPU) -DARDUINO=100
 CXXDEFS = -DF_CPU=$(F_CPU) -DARDUINO=100
 
-
-# Place -I options here
-#  /usr/share/arduino/hardware/arduino/variants/...
-#-I/usr/share/arduino/hardware/arduino/cores/arduino
-CINCS = -I$(ARDUINO) \
- -I/usr/share/arduino/hardware/arduino/variants/mega \
- -I/usr/share/arduino/libraries/Wire/utility
-CXXINCS = -I$(ARDUINO) \
- -I/usr/share/arduino/libraries/LiquidCrystal \
- -I/usr/share/arduino/libraries/Wire \
- -I/usr/share/arduino/libraries/SPI \
- -I/usr/share/arduino/libraries/SD \
- -I/usr/share/arduino/libraries/SD/utility \
- -I/usr/share/arduino/libraries/Sha \
- -I/usr/share/arduino/libraries/RTClib \
- -I./Ethernet \
- -I./Ethernet/utility
-
 # Compiler flag to set the C Standard level.
 # c89   - "ANSI" C
 # gnu89 - c89 plus GCC extensions
 # c99   - ISO C99 standard (not yet fully implemented)
 # gnu99 - c99 plus GCC extensions
+
 CSTANDARD = -std=gnu99
 CDEBUG = -g$(DEBUG)
 CWARN = -Wall -Wstrict-prototypes
@@ -211,7 +180,7 @@ $(TARGET).elf: $(OBJ)
 # Target: clean project.
 ## keep $(TARGET).hex
 clean:
-	$(REMOVE) $(TARGET).eep $(TARGET).cof $(TARGET).elf \
+	$(REMOVE) $(TARGET).eep $(TARGET).cof $(TARGET).elf $(TARGET).hex \
 	$(TARGET).map $(TARGET).sym $(TARGET).lss \
 	$(OBJ) $(LST) $(SRC:.c=.s) $(SRC:.c=.d) $(CXXSRC:.cpp=.s) $(CXXSRC:.cpp=.d)
 

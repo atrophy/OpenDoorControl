@@ -1,4 +1,3 @@
-
 /**
  *	@file
  *	@author	Daniel Harmsworth <atrophy@artifactory.org.au>
@@ -24,37 +23,11 @@
  *
  *	@section DESCRIPTION
  *
- *	This is where our main loop lives and we do all of the initial setup.
+ *	The locked loop is run as the main loop by the FSM when the space is in the LOCKED state.
  *
 **/
 
-#include <avr/wdt.h>
-#include "OpenDoorControl.h"
-
-void fsmtrans(int input){	//often occurs inside interrupt
-	fsm.event[fsm.state][input]();	//before change of state so the trans table still has meaning.
-	fsm.state = fsm.trans[fsm.state][input];
-}
-
-void noEvent(){}	//deliberately no event
-void someEvent(){};	//arbitrary place holder
-
-void closedLoop(){}
-void lockupLoop(){}
-void openLoop(){}
-void guestLoop(){}
-void restrictLoop(){}
-
-int main(){
-
-	// Watchdog timer setup
-	wdt_enable(WDTO_8S);
-
-	while(1){
-		wdt_reset();			// Pat the watchdog
-		fsm.loop[fsm.state]();	// Run the state machine loop
-	}
-
-	return 0;
-
+void lockedLoop ()
+{
+	
 }
