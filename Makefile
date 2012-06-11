@@ -27,7 +27,7 @@ FORMAT = ihex
 #UPLOAD_RATE = 19200
 UPLOAD_RATE = 115200
 
-TARGET = OpenDoorControl
+TARGET = odcMain
 #ARDUINO = /usr/share/arduino/hardware/arduino/variants/mega
 #PATH=${PATH}:/Applications/Arduino.app/Contents/Resources/Java/hardware/tools/avr/bin
 
@@ -184,5 +184,4 @@ clean:
 	$(TARGET).map $(TARGET).sym $(TARGET).lss \
 	$(OBJ) $(LST) $(SRC:.c=.s) $(SRC:.c=.d) $(CXXSRC:.cpp=.s) $(CXXSRC:.cpp=.d)
 
-.PHONY:	all build elf hex eep lss sym program coff extcoff clean #depend
-
+.PHONY:	all build elf hex eep lss sym program coff extcoff clean #depend	

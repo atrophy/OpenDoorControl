@@ -1,7 +1,7 @@
 
 /**
  * @file
- * 
+ * @brief Main program, contains the main loop and setup
  *
  * @author Daniel Harmsworth <atrophy@artifactory.org.au>
  * @author Brett Downing <brett@artifactory.org.au>
@@ -31,7 +31,7 @@
 **/
 
 #include <avr/wdt.h>
-#include "OpenDoorControl.h"
+#include "odcMain.h"
 
 #include "stateLoops.h"
 
