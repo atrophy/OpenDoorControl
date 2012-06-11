@@ -1,179 +1,84 @@
+//FSM
+//a generic event driven state machine designed for the Artifactory Door among other things.
+
+
+//there should only be one FSM struct.
+#define FSM_NUM_STATES 5
+#define FSM_NUM_INPUTS 8
+
+typedef void (* FPtr) ();
+
+
+//can we assume these will be enumerated in order and from zero?
+enum STATE {CLOSED, LOCKUP, OPEN, GUEST, RESTRICTED};	//states
 /*
-  $Id$
-
-  OpenDoorControl
-  Copyright (c) 2012 The Perth Artifactory by
-    Brett R. Downing <brett@artifactory.org.au>
-    Daniel Harmsworth <atrophy@artifactory.org.au>
-    Sebastian Southen <southen@gmail.com>
-
-  This program is free software: you can redistribute it and/or modify
-  it under the terms of the GNU General Public License as published by
-  the Free Software Foundation, either version 3 of the License, or
-  (at your option) any later version.
-
-  This program is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  GNU General Public License for more details.
-
-  You should have received a copy of the GNU General Public License
-  along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
+#define CLOSED 0
+#define LOCKUP 1
+#define OPEN 2
+#define GUEST 3
+#define RESTRICTED 4
 */
 
-#include <LiquidCrystal.h>
-#include "RTClib/RTClib.h"
-#include <SD.h>
-#include "general.h"
-#include "Ethernet/Ethernet.h"
-
-//Handy SI units  ***********************************
-#define MS *(unsigned long)1000
-#define S *((unsigned long)1000 MS)
-#define uSPERHOUR (3600 S)
-
-//Pin assignment ************************************
-#define DOORSTRIKE 61		// the pin the door strike is on.
-
-#define LCDBACKLIGHT 2		//
-
-#define DOORBELL 62			// 62  //use the analogue pins, then the interrupts are on one port.
-#define DOORBELLLED 3		//
-
-#define REEDSWITCH 63		// 63  //in the door frame
-
-#define GUESTOKSWITCH 64	// 64  //doesn't strictly need interrupt
-#define GUESTOKLED 9		//
-
-#define LOCKUPBUTTON 65		// 65
-#define LOCKUPLED 8			//
-
-#define STATUS_R 5			//
-#define STATUS_G 6			//
-#define STATUS_B 7			//
-
-#define DEBOUNCEDELAY 50000
-
-// bits on the analogue port (PINK) ********
-#define DOORBELLBIT (1<<0)
-#define LOCKUPBIT (1<<1)
-#define GUESTOKBIT (1<<2)
-#define REEDSWITCHBIT (1<<3)
-#define SD_CS_PIN 4			// pin four on the ethermega
-
-//LiquidCrystal lcd(32, 30, 28, 26, 24, 22);
-extern LiquidCrystal lcd;
-//RTC_DS1307 RTC;  			// using hardware i2c 18, 19
-extern RTC_DS1307 RTC;
-
-//for RFID strings ***********************************
-//#define HASHLENGTH 20		// 20 bytes, 40 hex chars
-#define HASHLENGTH 10		//  5 bytes, 10 hex chars (crypto-hashing disable)
-#define RFIDLENGTH 10		//  5 bytes, 10 hex chars
-#define RFIDSTRINGLENGTH 12	// 10 uid chars, 2 checksum
-#define AUTHFILECOUNT 3
-
-
-//for server and SD strings **************************
-#define BUFSIZ 60			// the largest string we have to handle should be 41 bytes 
-#define COMMENTCHAR '/'
+//can we assume these will be enumerated in order and from zero?
+enum INPUT {DOORBELL, RED_BUTTON, GREEN_BUTTON, LOCKUP_TIMER, RFID_AUTH, RFID_NAUTH, RFID_RAUTH, RFID_RNAUTH};	//inputs//
 /*
-//for server strings *********************************
-#define BEGINCHAR '('
-#define ENDCHAR ')'
-#define MIDCHAR ':'
-#define CANCHAR '|'  //cancel the list, reset the state machine
-#define FULLFILEALIAS "FullHashes"  //less than BUFSIZ chars
-#define ASOCFILEALIAS "AsocHashes"
+#define DOORBELL 0
+#define RED_BUTTON 1
+#define GREEN_BUTTON 2
+#define LOCKUP_TIMER 3
+#define RFID_AUTH 4
+#define RFID_NAUTH 5
+#define RFID_RAUTH 6
+#define RFID_RNAUTH 7
 */
 
-//state variables for fail-over mechanisms ************
-extern bool SDcardPresent;
-extern bool spaceOpen;
-extern bool guestAccess;
-extern bool reedswitchState;
-extern bool onNTPtime;
-extern bool spaceGrace;
-extern bool doorStatusRepeat;
+struct FSM{
+	STATE state;
+	const STATE trans[FSM_NUM_INPUTS][FSM_NUM_STATES];	//the index of the state to transition to on a given input event.
+//int state;
+//const int trans[FSM_NUM_INPUTS][FSM_NUM_STATES];
 
-//Fast Timers ***************************************(uS)
-#define NUMFASTTIMERS 5
-#define TIMERSECOND 0
-#define TIMERSLOWPOLL 1
-#define TIMERSTRIKE 2
-#define TIMERLEDBLINK 3
-#define TIMERLEDFADER 4
+	const FPtr loop[FSM_NUM_STATES];	//the functions to execute continuously for a given state.
+	const FPtr event[FSM_NUM_INPUTS][FSM_NUM_STATES];	//should only do one thing on any given transition. (a lot of functions)
+};
 
+void fsmtrans(INPUT input);	//called by an event handler
 
-//#define TIMERSERVER 3
-#define NUMSLOWTIMERS 11
-#define TIMERLOGDUMP 0
-#define TIMERRTCREFRESH 1
-#define TIMERLCDTIME 2
-#define TIMERDOORBELL 3
-#define TIMERDOORSTATUS 4
-#define TIMEREXITGRACE 5
+/******************functions within the FSM (user defined)*******************/
+void closedloop();
+void lockuploop();
+void openloop();
+void guestloop();
+void restrictloop();
 
-#define TIMERDHCPREFRESH 6
-#define TIMERUPDATELISTS 7
-#define TIMERUPDATEPOLLER 8
-#define TIMERUPDATERECEIVE 9
+void noEvent();	//deliberately no event
+void someEvent();	//arbitrary place holder
 
-#define LEDFADERCOUNT 10
+FSM fsm = {CLOSED,	//starting state
 
-//#define TIMERINDUCEDEATH 6
-
-
-
-extern timer fastTimers[NUMFASTTIMERS];
-extern timer slowTimers[NUMSLOWTIMERS];
-
-
-//the time for logging purposes *******************************
-//unsigned long theTime = 0;  //seconds since boot (or 1900 epoch after NTP)
-extern unsigned long theTime;
-//the time for (sub-hour) timing purposes
-//unsigned long microsHolder = 0;  //the current window
-//unsigned long oldMicros = 0;  //the last time we checked
+			/*state table			CLOSED,			LOCKUP,			OPEN,				GUEST,			RESTRICTED*/
+			/*DOORBELL*/	{{	CLOSED,			OPEN,				OPEN,				OPEN, 			RESTRICTED},
+			/*RED_BUTTON*/	{	CLOSED,			CLOSED, 		LOCKUP,			LOCKUP,			LOCKUP},
+			/*GREEN_BUTTON*/{	CLOSED,			OPEN, 			GUEST,			OPEN,				RESTRICTED},
+			/*LOCKUP_TIMER*/{	CLOSED, 		CLOSED,			OPEN,				GUEST,			RESTRICTED},
+			/*RFID_AUTH*/		{	OPEN,				OPEN,				OPEN,				OPEN,				OPEN},
+			/*RFID_NAUTH*/	{	CLOSED,			LOCKUP,			OPEN,				GUEST,			RESTRICTED},
+			/*RFID_RAUTH*/	{	RESTRICTED,	RESTRICTED,	OPEN,				GUEST, 			RESTRICTED},
+			/*RFID_RNAUTH*/	{	CLOSED,			LOCKUP,			OPEN,				GUEST,			RESTRICTED}},
+			
+			/*main-loops*/	{	closedloop, lockuploop, openloop, 	guestloop, restrictloop},
+			
+			/*state change events*/
+			/*DOORBELL*/	{{	someEvent,	someEvent,	someEvent,	someEvent,	someEvent},
+			/*RED_BUTTON*/	{	noEvent,		someEvent,	someEvent,	someEvent,	someEvent},
+			/*GREEN_BUTTON*/{	noEvent,		someEvent,	someEvent,	someEvent,	someEvent},
+			/*LOCKUP_TIMER*/{	noEvent,		someEvent,	noEvent,		noEvent,		noEvent},
+			/*RFID_AUTH*/		{	someEvent,	someEvent,	someEvent,	someEvent,	someEvent},
+			/*RFID_NAUTH*/	{	someEvent,	noEvent,		noEvent,		noEvent,		noEvent},			//logging is handled by RFID read func
+			/*RFID_RAUTH*/	{	someEvent,	someEvent,	someEvent,	someEvent,	someEvent},
+			/*RFID_RNAUTH*/	{	someEvent,	noEvent,		noEvent,		noEvent,		someEvent}}
+};
 
 
-//SD card files *************************************
-//File openFile; //the open file (the SD lib can't hold two files open?!)
-extern File openFile;
-extern char fullFile[13];
-extern char assocFile[13];
-extern char restFile[13];
-extern const char* logFilePrefix;
-extern const char* logFileSuffix;
-extern char logFile[13];
 
-extern char tempFile[13];
-
-//char* tempFile = "tempFile.txt";  //why am I not allowed to re-name files?
-#define LOGDIGITS 4  //integer makes 4hex digits
-//archived logs will have LOGDIGITS hex digits following them
-
-extern char authFiles[AUTHFILECOUNT][13];
-extern int authFileCurrent;
-extern int authRetrieveAttempts;
-extern bool blinkStatus;
-extern int blinkPin;
-
-extern int fadePins[LEDFADERCOUNT];
-extern float fadeTime;
-
-extern byte server[4];
-extern EthernetClient client;
-
-/*
-byte mac[] = {0x31, 0x41, 0x15, 0x92, 0x65, 0x38};  //the mac of the door
-  
-IPAddress ip(192,168,16,80);  //the default IP address (only used if DHCP fails)
-IPAddress gateway(192,168,16, 1);
-IPAddress subnet(255, 255, 255, 0);
-IPAddress server(192,168,16,1); 
-unsigned int telnetPort = 3141;      // local port to listen for hash lists
-EthernetClient client;
-*/
 
