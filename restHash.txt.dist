@@ -1,4 +1,4 @@
 / Prototype scheduled access file
 
-/Sun ,Mon  ,Tue  ,Wed  ,Thu  ,Fri  ,Sat
-00-00,12-24,00-12,00-00,00-00,00-00,00-00
+/ Hash		Sun  ,Mon  ,Tue  ,Wed  ,Thu  ,Fri  ,Sat		Comment
+0123456789	00-00,12-24,00-12,00-00,00-00,00-00,00-00	/ Joe Bloggs

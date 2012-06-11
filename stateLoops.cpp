@@ -1,7 +1,6 @@
-
 /**
  * @file
- * 
+ * @brief Main loop functions for the FSM
  *
  * @author Daniel Harmsworth <atrophy@artifactory.org.au>
  * @author Brett Downing <brett@artifactory.org.au>
@@ -26,36 +25,48 @@
  *
  * @section DESCRIPTION
  *
- * This is where our main loop lives and we do all of the initial setup.
+ * FIXME Main loops for the various states.
  *
 **/
 
-#include <avr/wdt.h>
-#include "OpenDoorControl.h"
-
 #include "stateLoops.h"
 
-void fsmrans(INPUT input){	//often occurs inside interrupt
-	fsm.event[fsm.state][input]();	//before change of state so the trans table still has meaning.
-	fsm.state = fsm.trans[fsm.state][input];
+/**
+ * Runs as the main loop when the system is in the CLOSED state
+**/
+void closedLoop ()
+{
+	
 }
 
-/** An explicit do-nothing function **/
-void noEvent(){}
+/**
+ * Runs as the main loop when the system is in the OPEN state
+**/
+void openLoop()
+{
 
-/** Placeholder function **/
-void someEvent(){};
+}
 
-int main(){
+/**
+ * Runs as the main loop when the system is in the LOCKUP state
+**/
+void lockupLoop()
+{
 
-	// Watchdog timer setup
-	wdt_enable(WDTO_8S);
+}
 
-	while(1){
-		wdt_reset();			// Pat the watchdog
-		fsm.loop[fsm.state]();	// Run the state machine loop
-	}
+/**
+ * Runs as the main loop when the system is in the GUEST state
+**/
+void guestLoop()
+{
 
-	return 0;
+}
+
+/**
+ * Runs as the main loop when the system is in the RESTRICTED state
+**/
+void restrictLoop()
+{
 
 }

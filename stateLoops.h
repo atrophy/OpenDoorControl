@@ -1,7 +1,6 @@
-
 /**
  * @file
- * 
+ * @brief Main loop prototypes for the FSM
  *
  * @author Daniel Harmsworth <atrophy@artifactory.org.au>
  * @author Brett Downing <brett@artifactory.org.au>
@@ -26,36 +25,16 @@
  *
  * @section DESCRIPTION
  *
- * This is where our main loop lives and we do all of the initial setup.
+ * FIXME Main loop prototypes for the various states.
  *
 **/
 
-#include <avr/wdt.h>
-#include "OpenDoorControl.h"
+void closedLoop();
 
-#include "stateLoops.h"
+void openLoop();
 
-void fsmrans(INPUT input){	//often occurs inside interrupt
-	fsm.event[fsm.state][input]();	//before change of state so the trans table still has meaning.
-	fsm.state = fsm.trans[fsm.state][input];
-}
+void lockupLoop(){}
 
-/** An explicit do-nothing function **/
-void noEvent(){}
+void guestLoop(){}
 
-/** Placeholder function **/
-void someEvent(){};
-
-int main(){
-
-	// Watchdog timer setup
-	wdt_enable(WDTO_8S);
-
-	while(1){
-		wdt_reset();			// Pat the watchdog
-		fsm.loop[fsm.state]();	// Run the state machine loop
-	}
-
-	return 0;
-
-}
+void restrictLoop(){}
