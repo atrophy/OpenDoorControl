@@ -28,6 +28,8 @@
  *
 **/
 
+#include "stateLoops.h"
+
 /*
 FSM
 A generic event driven finite state machine designed for the Artifactory Door among other things.
@@ -51,7 +53,8 @@ enum STATE {
 				OPEN,
 				GUEST,
 				RESTRICTED,
-				FSM_NUM_STATES	// This always has to be the last member
+				/* DO NOT MODIFY BELOW */
+				FSM_NUM_STATES
 };
 
 /**
@@ -67,6 +70,7 @@ enum INPUT {
 				RFID_NAUTH,
 				RFID_RAUTH,
 				RFID_RNAUTH,
+				/* DO NOT MODIFY BELOW */
 				FSM_NUM_INPUTS
 };
 
@@ -93,19 +97,9 @@ struct FSM{
 	const FPtr event[FSM_NUM_INPUTS][FSM_NUM_STATES];
 };
 
-/**
-* Called by an event handler
-*
-* @param input The input that triggered the event
-**/
-void fsmtrans(INPUT input);
+void fsmTrans(INPUT input);
 
 /******************functions within the FSM (user defined)*******************/
-void closedLoop();
-void lockupLoop();
-void openLoop();
-void guestLoop();
-void restrictLoop();
 
 void noEvent();
 void someEvent();

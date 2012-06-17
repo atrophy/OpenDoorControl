@@ -35,7 +35,12 @@
 
 #include "stateLoops.h"
 
-void fsmrans(INPUT input){	//often occurs inside interrupt
+/**
+* Called by an event handler
+*
+* @param input The input that triggered the event
+**/
+void fsmTrans(INPUT input){
 	fsm.event[fsm.state][input]();	//before change of state so the trans table still has meaning.
 	fsm.state = fsm.trans[fsm.state][input];
 }
@@ -53,6 +58,7 @@ int main(){
 
 	while(1){
 		wdt_reset();			// Pat the watchdog
+		serviceTimers();		// Service the timers
 		fsm.loop[fsm.state]();	// Run the state machine loop
 	}
 

@@ -30,11 +30,7 @@
 **/
 
 void closedLoop();
-
 void openLoop();
-
-void lockupLoop(){}
-
-void guestLoop(){}
-
-void restrictLoop(){}
+void lockupLoop();
+void guestLoop();
+void restrictLoop();

@@ -34,8 +34,8 @@ TARGET = odcMain
 # Setting up the libs, explicitly using the locally stored copy of the Ethernet library so we can make changes
 LIBS = 
 
-CXXSRC = $(TARGET).cpp $(LIBS)
-#CXXSRC = $(wildcard *.cpp) $(LIBS)
+#CXXSRC = $(TARGET).cpp $(LIBS)
+CXXSRC = $(wildcard *.cpp) $(LIBS)
 
 # Debugging format.
 # Native formats for AVR-GCC's -g are stabs [default], or dwarf-2.
