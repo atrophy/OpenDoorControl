@@ -268,6 +268,13 @@ void loop() {
   pollRFIDbuffer(); //there is no indication or recovery if the RFID goes down.
   pollTimers();
   runInterruptServices();
+
+  // Paranoia function, if the space is closed, ensure the door is always locked
+  if (spaceOpen == false)
+  {
+    digitalWrite(DOORSTRIKE, LOW);
+  }
+
   //  pollServerBuffer();
   wdt_reset();  // Pat the watchdog
 }
