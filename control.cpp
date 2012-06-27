@@ -192,6 +192,11 @@ void DoorStatusRefresh() {
 	slowTimers[TIMERDOORSTATUS].active = false;
 }
 
+void guestTimeout() {
+  guestAccess = false;
+  slowTimers[TIMERGUESTTIMEOUT].active = false;
+}
+
 void ledBlink(){
   if ( blinkPin <= 0) { return; }
   digitalWrite(blinkPin, ( blinkStatus ? HIGH : LOW ));

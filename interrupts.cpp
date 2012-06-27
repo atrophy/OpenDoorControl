@@ -165,6 +165,8 @@ void runInterruptServices() {  //called from loop, take your time.
 
 			if (guestAccess) {
 				fileWrite(logFile, "Guests", "Allowed", true);
+				slowTimers[TIMERGUESTTIMEOUT].start = theTime;
+				slowTimers[TIMERGUESTTIMEOUT].active = true;
 			}
 			else {
 				fileWrite(logFile, "Guests", "Denied", true);

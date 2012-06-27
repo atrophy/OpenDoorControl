@@ -221,6 +221,10 @@ void setup() {
   slowTimers[TIMEREXITGRACE].active = false;
   slowTimers[TIMEREXITGRACE].expire = closeSpaceFinal;
 
+  slowTimers[TIMERGUESTTIMEOUT].period = 3600; // Guest mode lasts 1 hour
+  slowTimers[TIMERGUESTTIMEOUT].active = false;
+  slowTimers[TIMERGUESTTIMEOUT].expire = guestTimeout;
+
   //slowTimers[TIMERINDUCEDEATH].period = 10;
   //slowTimers[TIMERINDUCEDEATH].active = true;
   //slowTimers[TIMERINDUCEDEATH].expire = induceDeath;
